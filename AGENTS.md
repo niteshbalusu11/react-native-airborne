@@ -149,7 +149,7 @@ bun run sync-template
 ```
 
 The sync script copies selected repo paths into `tooling/create-react-native-airborne/template` and rewrites placeholder metadata.
-It also removes repo-specific publish workflow files that should not be included in generated app templates.
+It uses explicit exclude paths so repo-only files (like publish workflow) are not copied into generated app templates.
 
 ## CI and Quality Gates
 
@@ -160,8 +160,7 @@ CI (`.github/workflows/ci.yml`) runs:
 3. native Android build on Linux (`arm64-v8a`)
 4. native iOS simulator build on `macos-26` (`arm64`)
 
-Publish CI (`.github/workflows/publish-create-react-native-airborne.yml`) runs on tag push, publishes `tooling/create-react-native-airborne` to npm when tag version matches package version, and creates a GitHub Release via `gh release create`.
-Required secret: `NPM_TOKEN`.
+Publish CI (`.github/workflows/publish-create-react-native-airborne.yml`) runs on tag push, publishes `tooling/create-react-native-airborne` to npm with trusted publishing (GitHub OIDC) when tag version matches package version, and creates a GitHub Release via `gh release create`.
 
 Keep local changes compatible with these checks.
 

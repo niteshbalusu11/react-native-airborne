@@ -25,7 +25,7 @@ jobs:
       - name: "🟢 Setup Node"
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22.14.0"
           registry-url: "https://registry.npmjs.org"
 
       - name: "📦 Install dependencies"
@@ -54,8 +54,6 @@ jobs:
 
       - name: "🚢 Publish package"
         working-directory: tooling/create-react-native-airborne
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --access public --provenance
 
       - name: "🏷️ Create GitHub Release"

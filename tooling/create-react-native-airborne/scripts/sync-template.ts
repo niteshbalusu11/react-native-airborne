@@ -33,32 +33,34 @@ const includePaths = [
   "server",
 ];
 
+const excludePaths = [
+  ".github/workflows/publish-create-react-native-airborne.yml",
+  "client/.expo",
+  "client/ios",
+  "client/android",
+  "client/node_modules",
+  "client/bun.lock",
+  "server/node_modules",
+  "server/bun.lock",
+];
+
+function getExcludePatterns(entry: string) {
+  const entryPrefix = `${entry}/`;
+
+  return excludePaths
+    .filter((path) => path.startsWith(entryPrefix))
+    .map((path) => path.slice(entryPrefix.length));
+}
+
 await $`rm -rf ${templateRoot}`;
 await $`mkdir -p ${templateRoot}`;
 
 for (const entry of includePaths) {
-  if (entry === "client") {
-    const clientSource = `${resolvePath(repoRoot, "client")}/`;
-    const clientDestination = `${resolvePath(templateRoot, "client")}/`;
-    await $`rsync -a --exclude .expo --exclude ios --exclude android --exclude node_modules --exclude bun.lock ${clientSource} ${clientDestination}`;
-    continue;
-  }
-
-  if (entry === "server") {
-    const serverSource = `${resolvePath(repoRoot, "server")}/`;
-    const serverDestination = `${resolvePath(templateRoot, "server")}/`;
-    await $`rsync -a --exclude node_modules --exclude bun.lock ${serverSource} ${serverDestination}`;
-    continue;
-  }
-
   const sourcePath = resolvePath(repoRoot, entry);
-  const destinationPath = resolvePath(templateRoot, entry);
-  await $`cp -R ${sourcePath} ${destinationPath}`;
+  const destinationPath = templateRoot;
+  const excludeArgs = getExcludePatterns(entry).flatMap((pattern) => ["--exclude", pattern]);
+  await $`rsync -a ${excludeArgs} ${sourcePath} ${destinationPath}`;
 }
-
-await $`find ${templateRoot} -name node_modules -type d -prune -exec rm -rf {} +`;
-await $`find ${templateRoot} -name bun.lock -type f -delete`;
-await $`rm -f ${resolvePath(templateRoot, ".github/workflows/publish-create-react-native-airborne.yml")}`;
 
 const rootPackagePath = resolvePath(templateRoot, "package.json");
 const rootPackage = await readJson<Record<string, unknown> & { scripts?: Record<string, string> }>(
@@ -95,10 +97,7 @@ const templateReadmePath = resolvePath(templateRoot, "README.md");
 const templateReadme = await Bun.file(templateReadmePath).text();
 await Bun.write(
   templateReadmePath,
-  templateReadme.replace(
-    /## 🛠️ Scaffolder Maintenance[\s\S]*?## 📝 Notes/,
-    "## 📝 Notes",
-  ),
+  templateReadme.replace(/## 🛠️ Scaffolder Maintenance[\s\S]*?## 📝 Notes/, "## 📝 Notes"),
 );
 
 const templateAgentsPath = resolvePath(templateRoot, "AGENTS.md");
@@ -110,20 +109,14 @@ await Bun.write(
       /\nThe repo also ships a scaffolder package: `tooling\/create-react-native-airborne`\.\n/,
       "\n",
     )
-    .replace(
-      /\n- `\.github\/workflows\/publish-create-react-native-airborne\.yml`:[^\n]*/,
-      "",
-    )
-    .replace(
-      /\n- `tooling\/create-react-native-airborne\/`: published create package/,
-      "",
-    )
+    .replace(/\n- `\.github\/workflows\/publish-create-react-native-airborne\.yml`:[^\n]*/, "")
+    .replace(/\n- `tooling\/create-react-native-airborne\/`: published create package/, "")
     .replace(
       /\nThe sync script copies selected repo paths into `tooling\/create-react-native-airborne\/template` and rewrites placeholder metadata\.\nIt also removes repo-specific publish workflow files that should not be included in generated app templates\.\n/,
       "\n",
     )
     .replace(
-      /Publish CI \(`\.github\/workflows\/publish-create-react-native-airborne\.yml`\)[\s\S]*?Required secret: `NPM_TOKEN`\.\n\n/,
+      /\nPublish CI \(`\.github\/workflows\/publish-create-react-native-airborne\.yml`\)[^\n]*\n/g,
       "",
     )
     .replace(/## Template Sync Workflow[\s\S]*?## CI and Quality Gates/, "## CI and Quality Gates"),
