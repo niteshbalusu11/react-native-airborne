@@ -12,6 +12,54 @@ Opinionated React Native starter for mobile-first apps with Expo + Convex.
 - Zustand + MMKV persistence
 - Expo push notifications
 
+## Contributor Guide
+
+Detailed implementation and maintenance notes for engineers/agents live in `AGENTS.md`.
+
+## Prerequisites
+
+- Bun `1.3.4+`
+- `just` command runner
+- Expo toolchain for iOS/Android simulators
+- Clerk app + Convex project
+
+## Quickstart
+
+```bash
+bun install --workspaces
+cp client/.env.example client/.env
+cp server/.env.example server/.env
+```
+
+First-time Convex setup (one-time per new deployment):
+
+```bash
+cd server
+bun run dev
+```
+
+Then run both apps:
+
+```bash
+just dev
+```
+
+## Commands
+
+- `just dev`: start Expo + Convex
+- `just dev-client`: start Expo only
+- `just dev-server`: start Convex only
+- `just fmt`: run Prettier on client and server
+- `just prebuild`: generate local iOS/Android native folders
+- `just ios`: launch iOS app
+- `just android`: launch Android app
+- `just lint`: lint/type lint checks
+- `just typecheck`: TypeScript checks
+- `just test`: client + server tests
+- `just test-client`: client tests only
+- `just test-server`: server tests only
+- `just ci`: lint + typecheck + tests
+
 ## Native Projects
 
 Generate native projects locally when needed:
@@ -20,27 +68,7 @@ Generate native projects locally when needed:
 just prebuild
 ```
 
-`client/ios` and `client/android` are intentionally gitignored.
-
-## Quickstart
-
-```bash
-bun install --workspaces
-cp client/.env.example client/.env
-cp server/.env.example server/.env
-just dev
-```
-
-## Commands
-
-- `just dev`: start Expo + Convex
-- `just fmt`: run Prettier on client and server
-- `just ios`: launch iOS app
-- `just android`: launch Android app
-- `just lint`: lint/type lint checks
-- `just typecheck`: TypeScript checks
-- `just test`: client + server tests
-- `just ci`: lint + typecheck + tests
+`client/ios` and `client/android` are intentionally gitignored and should not be committed.
 
 ## Environment Variables
 
@@ -55,6 +83,17 @@ just dev
 - `CLERK_JWT_ISSUER_DOMAIN`
 - `EXPO_PUSH_ENDPOINT` (optional)
 - `EXPO_ACCESS_TOKEN` (optional)
+
+## Scaffolder Maintenance
+
+This repo is also the source template for `create-react-native-airborne`.
+
+After changing starter files in root/client/server, sync the published template:
+
+```bash
+cd tooling/create-react-native-airborne
+bun run sync-template
+```
 
 ## Scaffolder
 
@@ -71,5 +110,6 @@ bun create react-native-airborne my-app
 - Mobile-only target (iOS/Android).
 - Do not store sensitive auth tokens in MMKV.
 - Uniwind classes are enabled by `client/global.css` and `client/metro.config.js`.
+- `SafeAreaView` is wrapped with `withUniwind` in `client/src/components/screen.tsx` for className support.
 - `server/convex/_generated` ships with starter stubs so typecheck/tests pass before deployment setup.
   After connecting Convex, run `cd server && bun run codegen` to regenerate.
