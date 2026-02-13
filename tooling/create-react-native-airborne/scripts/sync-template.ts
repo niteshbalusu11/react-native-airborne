@@ -111,7 +111,7 @@ await Bun.write(
       "\n",
     )
     .replace(
-      /\n- `\.github\/workflows\/publish-create-react-native-airborne\.yml`: npm publish on tags/,
+      /\n- `\.github\/workflows\/publish-create-react-native-airborne\.yml`:[^\n]*/,
       "",
     )
     .replace(
@@ -123,7 +123,7 @@ await Bun.write(
       "\n",
     )
     .replace(
-      /Publish CI \(`\.github\/workflows\/publish-create-react-native-airborne\.yml`\) runs on tag push and publishes `tooling\/create-react-native-airborne` to npm when tag version matches package version\.\nRequired secret: `NPM_TOKEN`\.\n\n/,
+      /Publish CI \(`\.github\/workflows\/publish-create-react-native-airborne\.yml`\)[\s\S]*?Required secret: `NPM_TOKEN`\.\n\n/,
       "",
     )
     .replace(/## Template Sync Workflow[\s\S]*?## CI and Quality Gates/, "## CI and Quality Gates"),

@@ -24,7 +24,7 @@ The repo also ships a scaffolder package: `tooling/create-react-native-airborne`
 - `uniwind/`: local integration docs used for setup decisions
 - `Justfile`: top-level task runner
 - `.github/workflows/ci.yml`: CI pipeline
-- `.github/workflows/publish-create-react-native-airborne.yml`: npm publish on tags
+- `.github/workflows/publish-create-react-native-airborne.yml`: npm publish + GitHub release on tags
 
 ## Tooling Baseline
 
@@ -160,7 +160,7 @@ CI (`.github/workflows/ci.yml`) runs:
 3. native Android build on Linux (`arm64-v8a`)
 4. native iOS simulator build on `macos-26` (`arm64`)
 
-Publish CI (`.github/workflows/publish-create-react-native-airborne.yml`) runs on tag push and publishes `tooling/create-react-native-airborne` to npm when tag version matches package version.
+Publish CI (`.github/workflows/publish-create-react-native-airborne.yml`) runs on tag push, publishes `tooling/create-react-native-airborne` to npm when tag version matches package version, and creates a GitHub Release via `gh release create`.
 Required secret: `NPM_TOKEN`.
 
 Keep local changes compatible with these checks.

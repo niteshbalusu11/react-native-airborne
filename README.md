@@ -114,6 +114,7 @@ Publishing is automated via GitHub Actions on tag push.
   - `create-react-native-airborne@<version>` (example: `create-react-native-airborne@0.2.0`)
 - Tag version must match `tooling/create-react-native-airborne/package.json` version.
 - Required repository secret: `NPM_TOKEN`.
+- A GitHub Release is created for the same tag in the same workflow run.
 
 ## 📝 Notes
 
