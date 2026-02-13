@@ -11,11 +11,8 @@ type AuthShellProps = PropsWithChildren<{
 
 export function AuthShell({ badge, title, subtitle, footer, children }: AuthShellProps) {
   return (
-    <Screen className="bg-slate-100 px-5 py-4 dark:bg-zinc-950">
+    <Screen className="bg-zinc-100 px-5 py-4 dark:bg-black">
       <View className="flex-1">
-        <View className="absolute -top-20 -right-16 h-52 w-52 rounded-full bg-cyan-200 dark:bg-cyan-900" />
-        <View className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full bg-sky-200 dark:bg-sky-900" />
-
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1 justify-center"
@@ -23,14 +20,14 @@ export function AuthShell({ badge, title, subtitle, footer, children }: AuthShel
           <ScrollView
             bounces={false}
             keyboardShouldPersistTaps="handled"
-            contentContainerClassName="flex-grow justify-center py-10"
+            contentContainerClassName="flex-grow justify-center py-6"
           >
             <View
-              style={styles.cardShadow}
-              className="rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900"
+              style={[styles.cardWidth, styles.cardShadow]}
+              className="self-center rounded-3xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
             >
-              <View className="mb-6 gap-3">
-                <Text className="text-xs font-semibold uppercase tracking-[2px] text-sky-700 dark:text-sky-300">
+              <View className="mb-6 gap-2">
+                <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-500 dark:text-zinc-400">
                   {badge}
                 </Text>
                 <Text className="text-4xl font-black leading-tight text-zinc-900 dark:text-zinc-50">
@@ -53,11 +50,15 @@ export function AuthShell({ badge, title, subtitle, footer, children }: AuthShel
 }
 
 const styles = StyleSheet.create({
+  cardWidth: {
+    width: "100%",
+    maxWidth: 540,
+  },
   cardShadow: {
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 6,
   },
 });

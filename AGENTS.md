@@ -45,8 +45,8 @@ From repository root:
 - `just dev-client`: run Expo only
 - `just dev-server`: run Convex only
 - `just prebuild`: generate native iOS/Android projects locally
-- `just ios`: run iOS app
-- `just android`: run Android app
+- `just ios`: run iOS app (supports extra Expo CLI args, for example `just ios --device "iPhone 16"`)
+- `just android`: run Android app (supports extra Expo CLI args, for example `just android --device "Pixel_8_API_35"`)
 - `just fmt`: format client/server with Prettier
 - `just lint`: lint both workspaces
 - `just typecheck`: typecheck both workspaces
@@ -74,7 +74,7 @@ Validation is in `server/convex/env.ts`.
 ## Auth Architecture (Clerk + Expo Router)
 
 - Root providers live in `client/app/_layout.tsx`:
-  - `ClerkProvider` with `tokenCache` from `@clerk/clerk-expo/token-cache` (secure storage)
+  - `ClerkProvider` with `tokenCache` from `@clerk/clerk-expo/token-cache` (Expo Secure Store, backed by iOS Keychain / Android Keystore)
   - `ConvexProviderWithClerk`
   - `SafeAreaProvider`
 - Route guards:
@@ -86,6 +86,9 @@ Validation is in `server/convex/env.ts`.
 - Auth screens are custom flows in:
   - `client/app/(auth)/sign-in.tsx`
   - `client/app/(auth)/sign-up.tsx`
+- Social auth is included in custom auth screens via Clerk SSO:
+  - Google on iOS + Android (`oauth_google`)
+  - Apple on iOS only (`oauth_apple`)
 
 Important: never store auth/session tokens in MMKV.
 
@@ -171,5 +174,7 @@ Keep local changes compatible with these checks.
 - Clerk says user is already signed in on auth pages:
   - ensure route guards are active and auth pages redirect signed-in users.
   - if simulator state is stale, clear app data/reinstall app and retry.
+- Social login fails to return to app:
+  - verify Google/Apple providers are enabled in Clerk and OAuth redirect URLs are configured for your app scheme.
 - Uniwind styles missing:
   - verify `global.css` imports and `withUniwindConfig` metro wrapper.

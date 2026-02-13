@@ -7,7 +7,7 @@ This project was scaffolded with React Native Airborne.
 - Bun workspaces monorepo (`client/`, `server/`)
 - Expo + Expo Router + Native Tabs (SDK 55)
 - Uniwind + Tailwind v4
-- Clerk auth flows
+- Clerk auth flows (email/password + Google, with Apple on iOS)
 - Convex backend + `convex-test`
 - Zustand + MMKV for non-sensitive local preferences
 - Expo push notifications
@@ -27,6 +27,7 @@ __APP_NAME__/
 - `just` command runner
 - Expo toolchain for iOS/Android simulators/devices
 - Clerk app with native API enabled
+- Clerk OAuth providers configured for Google and Apple
 - Convex project/deployment
 
 ## ⚡ Quickstart (After Scaffolding)
@@ -88,10 +89,13 @@ Server (`server/.env`):
 
 - Theme support is built-in for `light`, `dark`, and `system`.
 - Do not store sensitive auth/session tokens in MMKV.
+- Clerk session tokens are persisted via `@clerk/clerk-expo/token-cache` using `expo-secure-store` (iOS Keychain / Android Keystore).
+- Social login uses Clerk OAuth (`oauth_google`, `oauth_apple`), with Apple shown only on iOS.
 - Uniwind is configured via `client/global.css` and `client/metro.config.js`.
 - `SafeAreaView` is wrapped with `withUniwind` in `client/src/components/screen.tsx`.
 - `server/convex/_generated` ships with starter stubs; after connecting Convex, run `cd server && bun run codegen`.
 - `.direnv/` is gitignored by default.
+- You can pass Expo flags through `just ios`/`just android`, for example: `just ios --device "iPhone 16"` or `just android --device "Pixel_8_API_35"`.
 
 ## 🤝 Contributing
 

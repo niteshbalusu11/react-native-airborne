@@ -1,142 +1,38 @@
-import { useAuth, useSignUp } from "@clerk/clerk-expo";
-import { Link, Redirect, useRouter } from "expo-router";
-import { useState } from "react";
+import { Link, Redirect } from "expo-router";
 import { Text, View } from "react-native";
 import { AuthShell } from "@/src/components/auth-shell";
 import { FormInput } from "@/src/components/form-input";
 import { PrimaryButton } from "@/src/components/primary-button";
-
-type ClerkError = {
-  errors?: { longMessage?: string; message?: string }[];
-};
-
-function getClerkErrorMessage(error: unknown, fallback: string) {
-  const clerkError = error as ClerkError;
-  return clerkError.errors?.[0]?.longMessage ?? clerkError.errors?.[0]?.message ?? fallback;
-}
-
-function messageIndicatesSignedIn(message: string) {
-  return message.toLowerCase().includes("already signed in");
-}
+import { SocialAuthButtons } from "@/src/components/social-auth-buttons";
+import { useSignUpFlow } from "@/src/features/auth/use-sign-up-flow";
 
 export default function SignUpScreen() {
-  const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const { isLoaded, signUp, setActive } = useSignUp();
-  const router = useRouter();
-
-  const [emailAddress, setEmailAddress] = useState("");
-  const [password, setPassword] = useState("");
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    isAuthLoaded,
+    isSignedIn,
+    isLoaded,
+    emailAddress,
+    setEmailAddress,
+    password,
+    setPassword,
+    pendingVerification,
+    code,
+    setCode,
+    submitting,
+    error,
+    onSignUpPress,
+    onVerifyPress,
+    onGooglePress,
+    onApplePress,
+  } = useSignUpFlow();
 
   if (!isAuthLoaded) {
     return null;
   }
 
-  if (isAuthLoaded && isSignedIn) {
+  if (isSignedIn) {
     return <Redirect href="/" />;
   }
-
-  const activateSession = async (createdSessionId: string | null) => {
-    if (!setActive || !createdSessionId) {
-      router.replace("/(auth)/sign-in");
-      return;
-    }
-
-    await setActive({ session: createdSessionId });
-    router.replace("/");
-  };
-
-  const onSignUpPress = async () => {
-    if (!isLoaded || !signUp) {
-      return;
-    }
-
-    if (isSignedIn) {
-      router.replace("/");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const signUpAttempt = await signUp.create({
-        emailAddress: emailAddress.trim(),
-        password,
-      });
-
-      if (signUpAttempt.status === "complete") {
-        await activateSession(signUpAttempt.createdSessionId);
-        return;
-      }
-
-      if (signUpAttempt.status === "missing_requirements") {
-        const needsEmailVerification = signUpAttempt.unverifiedFields.includes("email_address");
-
-        if (needsEmailVerification) {
-          await signUpAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
-          setPendingVerification(true);
-          return;
-        }
-
-        setError(
-          "Account created, but additional sign-up requirements are enabled in Clerk. Check your Clerk settings.",
-        );
-        return;
-      }
-
-      setError("Sign-up was abandoned. Please try again.");
-    } catch (err) {
-      const message = getClerkErrorMessage(
-        err,
-        "Unable to sign up. Check your Clerk configuration.",
-      );
-
-      if (messageIndicatesSignedIn(message)) {
-        router.replace("/");
-        return;
-      }
-
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const onVerifyPress = async () => {
-    if (!isLoaded || !signUp) {
-      return;
-    }
-
-    if (isSignedIn) {
-      router.replace("/");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code: code.trim(),
-      });
-
-      if (signUpAttempt.status === "complete") {
-        await activateSession(signUpAttempt.createdSessionId);
-        return;
-      }
-
-      setError("Verification is not complete yet. Check the code and try again.");
-    } catch (err) {
-      const message = getClerkErrorMessage(err, "Invalid verification code.");
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   if (pendingVerification) {
     return (
@@ -149,7 +45,7 @@ export default function SignUpScreen() {
             <Text className="text-sm text-zinc-600 dark:text-zinc-300">Already verified?</Text>
             <Link
               href="/(auth)/sign-in"
-              className="text-sm font-semibold text-sky-600 dark:text-sky-400"
+              className="text-sm font-semibold text-zinc-900 underline dark:text-zinc-100"
             >
               Sign in
             </Link>
@@ -186,13 +82,13 @@ export default function SignUpScreen() {
     <AuthShell
       badge="Get started"
       title="Create your account"
-      subtitle="Use your email and a password. We'll send a verification code next."
+      subtitle="Set up your account to continue."
       footer={
-        <View className="flex-row items-center gap-1">
+        <View className="items-center">
           <Text className="text-sm text-zinc-600 dark:text-zinc-300">Already have an account?</Text>
           <Link
             href="/(auth)/sign-in"
-            className="text-sm font-semibold text-sky-600 dark:text-sky-400"
+            className="text-sm font-semibold text-zinc-900 underline dark:text-zinc-100"
           >
             Sign in
           </Link>
@@ -232,6 +128,13 @@ export default function SignUpScreen() {
       >
         {submitting ? "Creating account..." : "Continue"}
       </PrimaryButton>
+
+      <SocialAuthButtons
+        actionLabel="Sign up"
+        onGooglePress={onGooglePress}
+        onApplePress={onApplePress}
+        disabled={submitting || !isLoaded}
+      />
     </AuthShell>
   );
 }

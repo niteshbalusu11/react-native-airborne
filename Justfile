@@ -1,4 +1,5 @@
 set shell := ["zsh", "-cu"]
+set positional-arguments := true
 
 install:
   bun install --workspaces
@@ -18,11 +19,11 @@ dev-client:
 dev-server:
   cd server && bun run dev
 
-ios:
-  cd client && bun run ios
+ios *args:
+  cd client && bun run ios -- "$@"
 
-android:
-  cd client && bun run android
+android *args:
+  cd client && bun run android -- "$@"
 
 lint:
   cd client && bun run lint

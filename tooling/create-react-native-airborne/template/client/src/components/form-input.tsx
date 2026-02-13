@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 
@@ -18,6 +19,7 @@ type FormInputProps = {
     | "telephoneNumber";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
+  labelRight?: ReactNode;
   onChangeText: (value: string) => void;
 };
 
@@ -31,13 +33,17 @@ export function FormInput({
   textContentType = "none",
   autoCapitalize = "none",
   secureTextEntry = false,
+  labelRight,
   onChangeText,
 }: FormInputProps) {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View className="gap-2">
-      <Text className="text-sm font-medium text-zinc-800 dark:text-zinc-100">{label}</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{label}</Text>
+        {labelRight}
+      </View>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -51,8 +57,8 @@ export function FormInput({
         onBlur={() => setIsFocused(false)}
         className={`rounded-2xl border px-4 py-3.5 text-base text-zinc-900 dark:text-zinc-100 ${
           isFocused
-            ? "border-sky-500 bg-white dark:border-sky-400 dark:bg-zinc-950"
-            : "border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+            ? "border-zinc-500 bg-white dark:border-zinc-400 dark:bg-zinc-900"
+            : "border-zinc-300 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
         }`}
         placeholderTextColor="#71717a"
       />

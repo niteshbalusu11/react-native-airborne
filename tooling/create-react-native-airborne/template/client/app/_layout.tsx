@@ -18,6 +18,7 @@ function ThemeBootstrap() {
 
 export default function RootLayout() {
   return (
+    // tokenCache persists Clerk session tokens in Expo Secure Store (Keychain/Keystore).
     <ClerkProvider publishableKey={env.clerkPublishableKey} tokenCache={tokenCache}>
       <ConvexProviderWithClerk client={convexClient} useAuth={useAuth}>
         <SafeAreaProvider>

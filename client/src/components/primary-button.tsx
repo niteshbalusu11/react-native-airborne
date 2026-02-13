@@ -15,17 +15,17 @@ export function PrimaryButton({
 }: PrimaryButtonProps) {
   const activeClassName =
     tone === "primary"
-      ? "border border-sky-700 bg-sky-600 dark:border-sky-500 dark:bg-sky-500"
-      : "border border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800";
+      ? "border border-zinc-900 bg-zinc-900 dark:border-zinc-100 dark:bg-zinc-100"
+      : "border border-zinc-300 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900";
 
   const textClassName =
-    tone === "primary" ? "text-white dark:text-zinc-950" : "text-zinc-900 dark:text-zinc-100";
+    tone === "primary" ? "text-zinc-100 dark:text-zinc-950" : "text-zinc-900 dark:text-zinc-100";
 
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
-      className={`rounded-2xl px-4 py-3.5 ${disabled ? "border border-zinc-300 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-700" : activeClassName}`}
+      className={`rounded-2xl px-4 py-3.5 ${disabled ? "border border-zinc-300 bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800" : activeClassName}`}
     >
       <Text
         className={`text-center text-base font-semibold ${disabled ? "text-zinc-500 dark:text-zinc-400" : textClassName}`}

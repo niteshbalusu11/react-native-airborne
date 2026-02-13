@@ -21,7 +21,10 @@ export default function AppLayout() {
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="push" disableTransparentOnScrollEdge>
-        <NativeTabs.Trigger.Icon sf={{ default: "bell", selected: "bell.fill" }} md="notifications" />
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "bell", selected: "bell.fill" }}
+          md="notifications"
+        />
         <NativeTabs.Trigger.Label>Push</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 

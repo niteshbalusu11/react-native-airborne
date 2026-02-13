@@ -68,7 +68,7 @@
     },
     "tooling/create-react-native-airborne": {
       "name": "create-react-native-airborne",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "bin": {
         "create-react-native-airborne": "./src/index.mjs",
       },
