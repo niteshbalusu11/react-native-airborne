@@ -36,6 +36,7 @@ jobs:
           cd ../server && bun run test
 
   android-native-build:
+    needs: validate
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,6 +72,7 @@ jobs:
           ./gradlew :app:assembleDebug --no-daemon -PreactNativeArchitectures=arm64-v8a
 
   ios-native-build:
+    needs: validate
     runs-on: macos-latest
     defaults:
       run:
