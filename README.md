@@ -2,28 +2,28 @@
 
 Opinionated React Native starter for mobile-first apps with Expo + Convex.
 
-## Stack
+## 🧰 Stack
 
 - Bun workspaces monorepo (`client/`, `server/`)
-- Expo + Expo Router
+- Expo + Expo Router + Native Tabs (SDK 55)
 - Uniwind + Tailwind v4
 - Clerk authentication
 - Convex backend + `convex-test`
 - Zustand + MMKV persistence
 - Expo push notifications
 
-## Contributor Guide
+## 🤝 Contributor Guide
 
 Detailed implementation and maintenance notes for engineers/agents live in `AGENTS.md`.
 
-## Prerequisites
+## ✅ Prerequisites
 
 - Bun `1.3.4+`
 - `just` command runner
 - Expo toolchain for iOS/Android simulators
 - Clerk app + Convex project
 
-## Quickstart
+## ⚡ Quickstart
 
 ```bash
 bun install --workspaces
@@ -44,7 +44,7 @@ Then run both apps:
 just dev
 ```
 
-## Commands
+## 🧪 Commands
 
 - `just dev`: start Expo + Convex
 - `just dev-client`: start Expo only
@@ -60,7 +60,7 @@ just dev
 - `just test-server`: server tests only
 - `just ci`: lint + typecheck + tests
 
-## Native Projects
+## 📱 Native Projects
 
 Generate native projects locally when needed:
 
@@ -70,7 +70,7 @@ just prebuild
 
 `client/ios` and `client/android` are intentionally gitignored and should not be committed.
 
-## Environment Variables
+## 🔐 Environment Variables
 
 ### Client (`client/.env`)
 
@@ -84,7 +84,7 @@ just prebuild
 - `EXPO_PUSH_ENDPOINT` (optional)
 - `EXPO_ACCESS_TOKEN` (optional)
 
-## Scaffolder Maintenance
+## 🛠️ Scaffolder Maintenance
 
 This repo is also the source template for `create-react-native-airborne`.
 
@@ -95,17 +95,27 @@ cd tooling/create-react-native-airborne
 bun run sync-template
 ```
 
-## Scaffolder
+## 📦 Scaffolder
 
 This repo includes `create-react-native-airborne` under `tooling/create-react-native-airborne`.
 
 After publishing:
 
 ```bash
-bun create react-native-airborne my-app
+bun create react-native-airborne@latest my-app
 ```
 
-## Notes
+## 🚀 Publish to npm
+
+Publishing is automated via GitHub Actions on tag push.
+
+- Supported tags:
+  - `v<version>` (example: `v0.2.0`)
+  - `create-react-native-airborne@<version>` (example: `create-react-native-airborne@0.2.0`)
+- Tag version must match `tooling/create-react-native-airborne/package.json` version.
+- Required repository secret: `NPM_TOKEN`.
+
+## 📝 Notes
 
 - Mobile-only target (iOS/Android).
 - Do not store sensitive auth tokens in MMKV.

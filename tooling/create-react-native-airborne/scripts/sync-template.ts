@@ -58,6 +58,7 @@ for (const entry of includePaths) {
 
 await $`find ${templateRoot} -name node_modules -type d -prune -exec rm -rf {} +`;
 await $`find ${templateRoot} -name bun.lock -type f -delete`;
+await $`rm -f ${resolvePath(templateRoot, ".github/workflows/publish-create-react-native-airborne.yml")}`;
 
 const rootPackagePath = resolvePath(templateRoot, "package.json");
 const rootPackage = await readJson<Record<string, unknown> & { scripts?: Record<string, string> }>(
