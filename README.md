@@ -1,8 +1,29 @@
 # React Native Airborne
 
-React Native Airborne my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
+React Native Airborne is my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
 
 It includes a production-ready Expo client, a Convex backend, and a published scaffolder (`create-react-native-airborne`) so you can generate new apps with one command.
+
+## 📦 Create New Projects
+
+After publishing:
+
+```bash
+bun create react-native-airborne@latest my-app
+```
+
+This generates a new app from the synced template with root/client/server `.gitignore` files correctly created.
+
+For Nix users, opt in at scaffold time:
+
+```bash
+bun create react-native-airborne@latest my-app --nix
+cd my-app
+direnv allow
+```
+
+`--nix` keeps root-level `flake.nix`, `flake.lock`, and `.envrc` in the generated project.
+Running `direnv allow` loads the Nix dev shell from `.envrc`.
 
 ## ✈️ What This Repo Contains
 
@@ -107,27 +128,6 @@ Server (`server/.env`):
 - `CLERK_JWT_ISSUER_DOMAIN`
 - `EXPO_PUSH_ENDPOINT` (optional)
 - `EXPO_ACCESS_TOKEN` (optional)
-
-## 📦 Create New Projects
-
-After publishing:
-
-```bash
-bun create react-native-airborne@latest my-app
-```
-
-This generates a new app from the synced template with root/client/server `.gitignore` files correctly created.
-
-For Nix users, opt in at scaffold time:
-
-```bash
-bun create react-native-airborne@latest my-app --nix
-cd my-app
-direnv allow
-```
-
-`--nix` keeps root-level `flake.nix`, `flake.lock`, and `.envrc` in the generated project.
-Running `direnv allow` loads the Nix dev shell from `.envrc`.
 
 ## 🛠️ Template Maintenance
 

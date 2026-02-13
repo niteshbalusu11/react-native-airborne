@@ -1,6 +1,6 @@
 # React Native Airborne
 
-React Native Airborne my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
+React Native Airborne is my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
 
 It includes a production-ready Expo client and a Convex backend.
 

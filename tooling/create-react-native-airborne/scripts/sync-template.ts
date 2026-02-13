@@ -146,8 +146,9 @@ await Bun.write(
       /## 🗂️ Project Layout[\s\S]*?## ✅ Prerequisites/,
       "## 🗂️ Project Layout\n\n```text\n__APP_NAME__/\n  client/ # Expo app (Expo Router + Native Tabs)\n  server/ # Convex backend\n```\n\n## ✅ Prerequisites",
     )
-    .replace(/## 📦 Create New Projects[\s\S]*?## 🤝 Contributor Guide/, "## 🤝 Contributor Guide")
-    .replace(/## 🛠️ (Scaffolder|Template) Maintenance[\s\S]*?## 📝 Notes/, "## 📝 Notes"),
+    .replace(/## 📦 Create New Projects[\s\S]*?(?=\n## )/g, "")
+    .replace(/## 🛠️ (Scaffolder|Template) Maintenance[\s\S]*?(?=\n## )/g, "")
+    .replace(/## 🚀 Publish to npm[\s\S]*?(?=\n## )/g, ""),
 );
 
 const templateAgentsPath = resolvePath(templateRoot, "AGENTS.md");
