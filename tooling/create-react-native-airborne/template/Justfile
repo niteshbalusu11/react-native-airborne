@@ -3,6 +3,9 @@ set shell := ["zsh", "-cu"]
 install:
   bun install --workspaces
 
+prebuild:
+  cd client && bunx expo prebuild --platform all
+
 dev:
   bunx concurrently -n CLIENT,SERVER -c blue,green "just dev-client" "just dev-server"
 

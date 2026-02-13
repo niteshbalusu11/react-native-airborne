@@ -9,9 +9,9 @@ node_modules/
 .expo-shared/
 client/.expo/
 
-# native build output
-client/android/
+# native folders (generated locally via prebuild)
 client/ios/
+client/android/
 
 # test/build artifacts
 coverage/

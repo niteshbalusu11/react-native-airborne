@@ -12,6 +12,16 @@ Opinionated React Native starter for mobile-first apps with Expo + Convex.
 - Zustand + MMKV persistence
 - Expo push notifications
 
+## Native Projects
+
+Generate native projects locally when needed:
+
+```bash
+just prebuild
+```
+
+`client/ios` and `client/android` are intentionally gitignored.
+
 ## Quickstart
 
 ```bash

@@ -1,6 +1,13 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { requireUserIdentity } from "./lib";
+
+async function getUserByClerkId(ctx: MutationCtx | QueryCtx, clerkUserId: string) {
+  return ctx.db
+    .query("users")
+    .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", clerkUserId))
+    .unique();
+}
 
 export const bootstrap = mutation({
   args: {
@@ -8,19 +15,14 @@ export const bootstrap = mutation({
     name: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
   },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     const identity = await requireUserIdentity(ctx);
     const now = Date.now();
 
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_user_id", (q: any) =>
-        q.eq("clerkUserId", identity.subject),
-      )
-      .unique();
+    const existing = await getUserByClerkId(ctx, identity.subject);
 
     if (existing) {
-      await ctx.db.patch(existing._id, {
+      await ctx.db.patch("users", existing._id, {
         email: args.email ?? existing.email,
         name: args.name ?? existing.name,
         imageUrl: args.imageUrl ?? existing.imageUrl,
@@ -41,17 +43,12 @@ export const bootstrap = mutation({
 
 export const current = query({
   args: {},
-  handler: async (ctx: any) => {
+  handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       return null;
     }
 
-    return ctx.db
-      .query("users")
-      .withIndex("by_clerk_user_id", (q: any) =>
-        q.eq("clerkUserId", identity.subject),
-      )
-      .unique();
+    return getUserByClerkId(ctx, identity.subject);
   },
 });

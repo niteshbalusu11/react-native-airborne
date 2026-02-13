@@ -1,26 +1,46 @@
 import { ConvexError, v } from "convex/values";
-import { action, mutation, query } from "./_generated/server";
+import { z } from "zod";
 import { api } from "./_generated/api";
+import {
+  action,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { getServerEnv } from "./env";
 import { requireUserIdentity } from "./lib";
 
-async function getCurrentUserId(ctx: {
-  auth: { getUserIdentity: () => Promise<{ subject: string } | null> };
-  db: {
-    query: Function;
+type ConvexCtx = MutationCtx | QueryCtx;
+
+type ExpoPushMessage = {
+  to: string;
+  sound: "default";
+  title: string;
+  body: string;
+  data: {
+    source: string;
   };
-}) {
+};
+
+const pushTokensSchema = z.array(
+  z.object({
+    token: z.string(),
+  }),
+);
+
+async function getCurrentUser(ctx: ConvexCtx) {
   const identity = await requireUserIdentity(ctx);
   const user = await ctx.db
     .query("users")
-    .withIndex("by_clerk_user_id", (q: any) => q.eq("clerkUserId", identity.subject))
+    .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", identity.subject))
     .unique();
 
   if (!user) {
     throw new ConvexError("Run users.bootstrap first");
   }
 
-  return user._id;
+  return user;
 }
 
 export const registerToken = mutation({
@@ -28,26 +48,26 @@ export const registerToken = mutation({
     token: v.string(),
     platform: v.optional(v.union(v.literal("ios"), v.literal("android"))),
   },
-  handler: async (ctx: any, args: any) => {
-    const userId = await getCurrentUserId(ctx);
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
     const existing = await ctx.db
       .query("pushTokens")
-      .withIndex("by_user_id_and_token", (q: any) =>
-        q.eq("userId", userId).eq("token", args.token),
+      .withIndex("by_user_id_and_token", (q) =>
+        q.eq("userId", user._id).eq("token", args.token),
       )
       .unique();
 
     const now = Date.now();
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        platform: args.platform ?? existing.platform,
+      await ctx.db.patch("pushTokens", existing._id, {
+        platform: args.platform,
         updatedAt: now,
       });
       return existing._id;
     }
 
     return ctx.db.insert("pushTokens", {
-      userId,
+      userId: user._id,
       token: args.token,
       platform: args.platform,
       updatedAt: now,
@@ -57,17 +77,17 @@ export const registerToken = mutation({
 
 export const unregisterToken = mutation({
   args: { token: v.string() },
-  handler: async (ctx: any, args: any) => {
-    const userId = await getCurrentUserId(ctx);
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
     const existing = await ctx.db
       .query("pushTokens")
-      .withIndex("by_user_id_and_token", (q: any) =>
-        q.eq("userId", userId).eq("token", args.token),
+      .withIndex("by_user_id_and_token", (q) =>
+        q.eq("userId", user._id).eq("token", args.token),
       )
       .unique();
 
     if (existing) {
-      await ctx.db.delete(existing._id);
+      await ctx.db.delete("pushTokens", existing._id);
     }
 
     return { success: true };
@@ -76,11 +96,11 @@ export const unregisterToken = mutation({
 
 export const listMyTokens = query({
   args: {},
-  handler: async (ctx: any) => {
-    const userId = await getCurrentUserId(ctx);
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
     return ctx.db
       .query("pushTokens")
-      .withIndex("by_user_id", (q: any) => q.eq("userId", userId))
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
       .collect();
   },
 });
@@ -90,16 +110,17 @@ export const sendTestNotification = action({
     title: v.optional(v.string()),
     body: v.optional(v.string()),
   },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     await requireUserIdentity(ctx);
     const env = getServerEnv();
 
-    const tokens = await ctx.runQuery(api.push.listMyTokens, {});
+    const rawTokens = await ctx.runQuery(api.push.listMyTokens, {});
+    const tokens = pushTokensSchema.parse(rawTokens);
     if (tokens.length === 0) {
       throw new ConvexError("No registered push tokens");
     }
 
-    const messages = tokens.map((tokenEntry: any) => ({
+    const messages: ExpoPushMessage[] = tokens.map((tokenEntry) => ({
       to: tokenEntry.token,
       sound: "default",
       title: args.title ?? "Airborne Test Notification",
@@ -127,12 +148,12 @@ export const sendTestNotification = action({
       body: JSON.stringify(messages),
     });
 
-    const json = await response.json();
+    const result = (await response.json()) as unknown;
 
     return {
       ok: response.ok,
       status: response.status,
-      result: json,
+      result,
       tokenCount: tokens.length,
     };
   },

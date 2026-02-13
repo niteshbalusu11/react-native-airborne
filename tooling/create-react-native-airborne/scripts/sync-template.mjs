@@ -28,8 +28,15 @@ for (const entry of includePaths) {
         rel.includes("node_modules") ||
         rel.includes(".expo") ||
         rel.endsWith("bun.lock") ||
-        rel.includes("/android/") ||
-        rel.includes("/ios/")
+        rel === "client/ios" ||
+        rel.startsWith("client/ios/") ||
+        rel === "client/android" ||
+        rel.startsWith("client/android/") ||
+        rel.includes("/ios/Pods") ||
+        rel.includes("/ios/build") ||
+        rel.includes("/android/.gradle") ||
+        rel.includes("/android/build") ||
+        rel.includes("/android/app/build")
       ) {
         return false;
       }

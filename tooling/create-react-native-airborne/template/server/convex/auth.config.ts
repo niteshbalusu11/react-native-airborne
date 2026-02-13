@@ -1,11 +1,10 @@
-import { getServerEnv } from "./env";
-
-const env = getServerEnv();
+const clerkIssuerDomain =
+  process.env.CLERK_JWT_ISSUER_DOMAIN ?? "https://example.clerk.accounts.dev";
 
 export default {
   providers: [
     {
-      domain: env.CLERK_JWT_ISSUER_DOMAIN,
+      domain: clerkIssuerDomain,
       applicationID: "convex",
     },
   ],

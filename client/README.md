@@ -15,6 +15,16 @@ bun install
 bun run start
 ```
 
+Generate native folders locally when you need native runs:
+
+```bash
+bunx expo prebuild --platform all
+```
+
+Then use:
+- `bun run ios`
+- `bun run android`
+
 ## Required env (`.env`)
 
 - `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`
