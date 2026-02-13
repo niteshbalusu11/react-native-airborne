@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# logs
+*.log
+
+# expo
+.expo/
+.expo-shared/
+client/.expo/
+
+# native build output
+client/android/
+client/ios/
+
+# test/build artifacts
+coverage/
+*.tsbuildinfo
+
+# env files
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store

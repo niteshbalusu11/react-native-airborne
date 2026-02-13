@@ -1,0 +1,18 @@
+{
+  "name": "create-react-native-airborne",
+  "version": "0.1.0",
+  "description": "Scaffold a react-native-airborne starter project",
+  "type": "module",
+  "bin": {
+    "create-react-native-airborne": "./src/index.mjs"
+  },
+  "files": [
+    "src",
+    "template"
+  ],
+  "scripts": {
+    "sync-template": "node ./scripts/sync-template.mjs",
+    "prepare": "bun run sync-template",
+    "prepack": "bun run sync-template"
+  }
+}

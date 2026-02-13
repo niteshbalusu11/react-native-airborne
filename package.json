@@ -1,0 +1,22 @@
+{
+  "name": "react-native-airborne",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "bun@1.3.4",
+  "workspaces": [
+    "client",
+    "server",
+    "tooling/create-react-native-airborne"
+  ],
+  "scripts": {
+    "dev": "just dev",
+    "install:all": "bun install --workspaces",
+    "lint": "just lint",
+    "typecheck": "just typecheck",
+    "test": "just test",
+    "ci": "just ci"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
