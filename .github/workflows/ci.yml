@@ -19,7 +19,7 @@ jobs:
           bun-version: "1.3.4"
 
       - name: "📦 Install dependencies"
-        run: bun install --workspaces
+        run: bun install --workspaces --frozen-lockfile
 
       - name: "🔍 Lint"
         run: |

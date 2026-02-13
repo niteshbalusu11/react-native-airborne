@@ -12,6 +12,9 @@ bun create react-native-airborne my-app
 
 - `--skip-install`: skip `bun install --workspaces`
 - `--no-git`: skip `git init`
+- `--nix`: include root-level `flake.nix`, `flake.lock`, and `.envrc`
+
+If you use `--nix`, run `direnv allow` after `cd` into the generated project.
 
 ## Development
 

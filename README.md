@@ -1,6 +1,6 @@
 # React Native Airborne
 
-React Native Airborne is an opinionated mobile starter for teams that want to ship iOS/Android apps fast without repeating the same setup every project.
+React Native Airborne my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
 
 It includes a production-ready Expo client, a Convex backend, and a published scaffolder (`create-react-native-airborne`) so you can generate new apps with one command.
 
@@ -118,6 +118,17 @@ bun create react-native-airborne@latest my-app
 
 This generates a new app from the synced template with root/client/server `.gitignore` files correctly created.
 
+For Nix users, opt in at scaffold time:
+
+```bash
+bun create react-native-airborne@latest my-app --nix
+cd my-app
+direnv allow
+```
+
+`--nix` keeps root-level `flake.nix`, `flake.lock`, and `.envrc` in the generated project.
+Running `direnv allow` loads the Nix dev shell from `.envrc`.
+
 ## 🛠️ Template Maintenance
 
 After changing starter files in root/client/server, sync the published template:
@@ -150,3 +161,4 @@ Detailed implementation and maintenance notes for engineers/agents live in `AGEN
 - `SafeAreaView` is wrapped with `withUniwind` in `client/src/components/screen.tsx` for className support.
 - `server/convex/_generated` ships with starter stubs so typecheck/tests pass before deployment setup.
 - After connecting Convex, run `cd server && bun run codegen` to regenerate server types.
+- `.direnv/` is gitignored by default.

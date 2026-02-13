@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, readdir, readFile, writeFile, copyFile, stat } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile, copyFile, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,9 @@ const flags = new Set(args.filter((arg) => arg.startsWith("--")));
 const projectNameArg = args.find((arg) => !arg.startsWith("--"));
 
 if (!projectNameArg) {
-  console.error("Usage: bun create react-native-airborne <project-name> [--skip-install] [--no-git]");
+  console.error(
+    "Usage: bun create react-native-airborne <project-name> [--skip-install] [--no-git] [--nix]",
+  );
   process.exit(1);
 }
 
@@ -18,6 +20,7 @@ const projectSlug = projectName.toLowerCase().replace(/[^a-z0-9-]/g, "-").replac
 const targetDir = path.resolve(process.cwd(), projectName);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templateDir = path.resolve(__dirname, "../template");
+const enableNix = flags.has("--nix");
 
 async function exists(filePath) {
   try {
@@ -81,6 +84,13 @@ if (await exists(targetDir)) {
 await copyDirectory(templateDir, targetDir);
 await replaceTokens(targetDir);
 
+if (!enableNix) {
+  const optionalNixFiles = [".envrc", "flake.nix", "flake.lock"];
+  for (const file of optionalNixFiles) {
+    await rm(path.join(targetDir, file), { force: true });
+  }
+}
+
 if (!flags.has("--skip-install")) {
   const install = spawnSync("bun", ["install", "--workspaces"], {
     cwd: targetDir,
@@ -101,4 +111,7 @@ console.log("\nNext steps:");
 console.log(`  cd ${projectName}`);
 console.log("  cp client/.env.example client/.env");
 console.log("  cp server/.env.example server/.env");
+if (enableNix) {
+  console.log("  direnv allow");
+}
 console.log("  just dev");

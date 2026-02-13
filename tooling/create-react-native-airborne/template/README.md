@@ -1,6 +1,6 @@
 # React Native Airborne
 
-React Native Airborne is an opinionated mobile starter for teams that want to ship iOS/Android apps fast without repeating the same setup every project.
+React Native Airborne my opinionated mobile starter for folks who want to ship iOS/Android apps fast without repeating the same setup every project.
 
 It includes a production-ready Expo client and a Convex backend.
 
@@ -110,3 +110,4 @@ Detailed implementation and maintenance notes for engineers/agents live in `AGEN
 - `SafeAreaView` is wrapped with `withUniwind` in `client/src/components/screen.tsx` for className support.
 - `server/convex/_generated` ships with starter stubs so typecheck/tests pass before deployment setup.
 - After connecting Convex, run `cd server && bun run codegen` to regenerate server types.
+- `.direnv/` is gitignored by default.

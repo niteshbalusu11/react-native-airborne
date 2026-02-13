@@ -36,16 +36,20 @@ async function rewriteGitignoreFiles(dir: string) {
 
 const repoRoot = toPath("../../..");
 const templateRoot = toPath("../template");
+const templateAppVersion = "0.1.0";
 
 const includePaths = [
   ".github",
   ".gitignore",
+  ".envrc",
   ".agents",
   "AGENTS.md",
   ".prettierignore",
   ".prettierrc.json",
   "Justfile",
   "README.md",
+  "flake.nix",
+  "flake.lock",
   "package.json",
   "client",
   "server",
@@ -78,7 +82,12 @@ await $`mkdir -p ${templateRoot}`;
 
 for (const entry of includePaths) {
   const sourcePath = resolvePath(repoRoot, entry);
-  const sourceStats = await stat(sourcePath);
+  let sourceStats;
+  try {
+    sourceStats = await stat(sourcePath);
+  } catch {
+    continue;
+  }
   const excludeArgs = getExcludePatterns(entry).flatMap((pattern) => ["--exclude", pattern]);
 
   if (sourceStats.isDirectory()) {
@@ -96,6 +105,7 @@ const rootPackage = await readJson<Record<string, unknown> & { scripts?: Record<
   rootPackagePath,
 );
 rootPackage.name = "__APP_NAME__";
+rootPackage.version = templateAppVersion;
 rootPackage.workspaces = ["client", "server"];
 if (rootPackage.scripts) {
   delete rootPackage.scripts["install:all"];
