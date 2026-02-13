@@ -7,8 +7,22 @@ import { FormInput } from "@/src/components/form-input";
 import { PrimaryButton } from "@/src/components/primary-button";
 
 type ClerkError = {
-  errors?: { longMessage?: string; message?: string }[];
+  errors?: { code?: string; longMessage?: string; message?: string }[];
 };
+
+function getClerkErrorMessage(error: unknown, fallback: string) {
+  const clerkError = error as ClerkError;
+  return clerkError.errors?.[0]?.longMessage ?? clerkError.errors?.[0]?.message ?? fallback;
+}
+
+function getClerkErrorCode(error: unknown) {
+  const clerkError = error as ClerkError;
+  return clerkError.errors?.[0]?.code?.toLowerCase() ?? null;
+}
+
+function messageIndicatesSignedIn(message: string) {
+  return message.toLowerCase().includes("already signed in");
+}
 
 export default function SignInScreen() {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
@@ -22,12 +36,60 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (isAuthLoaded && isSignedIn) {
-    return <Redirect href="/(app)" />;
+  if (!isAuthLoaded) {
+    return null;
   }
 
+  if (isAuthLoaded && isSignedIn) {
+    return <Redirect href="/" />;
+  }
+
+  const activateSession = async (createdSessionId: string | null) => {
+    if (!setActive || !createdSessionId) {
+      setError("Sign-in completed, but no session could be activated.");
+      return;
+    }
+
+    await setActive({ session: createdSessionId });
+    router.replace("/");
+  };
+
+  const beginEmailCodeSecondFactor = async (
+    supportedSecondFactors:
+      | {
+          strategy: string;
+          emailAddressId?: string;
+        }[]
+      | null
+      | undefined,
+  ) => {
+    if (!signIn) {
+      return false;
+    }
+
+    const emailCodeFactor = supportedSecondFactors?.find(
+      (factor) => factor.strategy === "email_code" && Boolean(factor.emailAddressId),
+    );
+
+    if (!emailCodeFactor?.emailAddressId) {
+      return false;
+    }
+
+    await signIn.prepareSecondFactor({
+      strategy: "email_code",
+      emailAddressId: emailCodeFactor.emailAddressId,
+    });
+    setShowEmailCode(true);
+    return true;
+  };
+
   const onSignInPress = async () => {
-    if (!isLoaded || !setActive) {
+    if (!isLoaded || !setActive || !signIn) {
+      return;
+    }
+
+    if (isSignedIn) {
+      router.replace("/");
       return;
     }
 
@@ -35,43 +97,126 @@ export default function SignInScreen() {
     setError(null);
 
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress.trim(),
-        password,
-      });
+      const identifier = emailAddress.trim();
+      let signInAttempt: Awaited<ReturnType<typeof signIn.create>>;
+
+      try {
+        signInAttempt = await signIn.create({
+          strategy: "password",
+          identifier,
+          password,
+        });
+      } catch (createErr) {
+        const createCode = getClerkErrorCode(createErr);
+        getClerkErrorMessage(createErr, "Unable to start password sign-in.");
+
+        if (createCode !== "form_param_format_invalid") {
+          throw createErr;
+        }
+
+        signInAttempt = await signIn.create({
+          identifier,
+        });
+      }
+
+      const firstFactorStrategies = signInAttempt.supportedFirstFactors?.map(
+        (factor) => factor.strategy,
+      );
+      const secondFactors = signInAttempt.supportedSecondFactors?.map((factor) => ({
+        strategy: factor.strategy,
+        emailAddressId: "emailAddressId" in factor ? factor.emailAddressId : undefined,
+      }));
 
       if (signInAttempt.status === "complete") {
-        await setActive({
-          session: signInAttempt.createdSessionId,
-          navigate: async () => {
-            router.replace("/(app)");
-          },
+        await activateSession(signInAttempt.createdSessionId);
+        return;
+      }
+
+      if (signInAttempt.status === "needs_first_factor") {
+        const hasPasswordFactor = firstFactorStrategies?.includes("password");
+
+        if (!hasPasswordFactor) {
+          setError(
+            "Password sign-in is not enabled for this Clerk app. Enable Password sign-in in Clerk Dashboard.",
+          );
+          return;
+        }
+
+        const passwordAttempt = await signIn.attemptFirstFactor({
+          strategy: "password",
+          password,
         });
+        const passwordAttemptSecondFactors = passwordAttempt.supportedSecondFactors?.map(
+          (factor) => ({
+            strategy: factor.strategy,
+            emailAddressId: "emailAddressId" in factor ? factor.emailAddressId : undefined,
+          }),
+        );
+
+        if (passwordAttempt.status === "complete") {
+          await activateSession(passwordAttempt.createdSessionId);
+          return;
+        }
+
+        if (passwordAttempt.status === "needs_second_factor") {
+          const startedSecondFactor = await beginEmailCodeSecondFactor(
+            passwordAttemptSecondFactors,
+          );
+
+          if (startedSecondFactor) {
+            return;
+          }
+
+          setError(
+            "Second-factor authentication is required, but email code is not enabled for this account.",
+          );
+          return;
+        }
+
+        setError(
+          `Password verification did not complete sign-in (${passwordAttempt.status ?? "unknown"}).`,
+        );
         return;
       }
 
       if (signInAttempt.status === "needs_second_factor") {
-        const emailCodeFactor = signInAttempt.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "email_code" && "emailAddressId" in factor,
-        );
+        const startedSecondFactor = await beginEmailCodeSecondFactor(secondFactors);
 
-        if (emailCodeFactor && "emailAddressId" in emailCodeFactor) {
-          await signIn.prepareSecondFactor({
-            strategy: "email_code",
-            emailAddressId: emailCodeFactor.emailAddressId,
-          });
-          setShowEmailCode(true);
+        if (startedSecondFactor) {
           return;
         }
+
+        setError(
+          "Second-factor authentication is required, but email code is not enabled for this account.",
+        );
+        return;
       }
 
-      setError("Sign-in requires an unsupported additional step.");
+      if (signInAttempt.status === "needs_new_password") {
+        setError("This account requires a password reset before sign-in.");
+        return;
+      }
+
+      setError(`Sign-in requires an unsupported step: ${signInAttempt.status ?? "unknown"}.`);
     } catch (err) {
-      const clerkError = err as ClerkError;
-      const message =
-        clerkError.errors?.[0]?.longMessage ??
-        clerkError.errors?.[0]?.message ??
-        "Unable to sign in. Check your credentials and Clerk setup.";
+      const code = getClerkErrorCode(err);
+      const message = getClerkErrorMessage(
+        err,
+        "Unable to sign in. Check your credentials and Clerk setup.",
+      );
+
+      if (messageIndicatesSignedIn(message)) {
+        router.replace("/");
+        return;
+      }
+
+      if (code?.includes("identifier") || message.toLowerCase().includes("invalid identifier")) {
+        setError(
+          "Invalid identifier. Verify you are using the exact email used at sign-up, and ensure Email is enabled as a sign-in identifier in Clerk Dashboard.",
+        );
+        return;
+      }
+
       setError(message);
     } finally {
       setSubmitting(false);
@@ -79,7 +224,12 @@ export default function SignInScreen() {
   };
 
   const onVerifyPress = async () => {
-    if (!isLoaded || !setActive) {
+    if (!isLoaded || !setActive || !signIn) {
+      return;
+    }
+
+    if (isSignedIn) {
+      router.replace("/");
       return;
     }
 
@@ -89,26 +239,17 @@ export default function SignInScreen() {
     try {
       const signInAttempt = await signIn.attemptSecondFactor({
         strategy: "email_code",
-        code,
+        code: code.trim(),
       });
 
       if (signInAttempt.status === "complete") {
-        await setActive({
-          session: signInAttempt.createdSessionId,
-          navigate: async () => {
-            router.replace("/(app)");
-          },
-        });
+        await activateSession(signInAttempt.createdSessionId);
         return;
       }
 
-      setError("Verification was not completed. Try again.");
+      setError(`Verification is not complete yet (${signInAttempt.status ?? "unknown"}).`);
     } catch (err) {
-      const clerkError = err as ClerkError;
-      const message =
-        clerkError.errors?.[0]?.longMessage ??
-        clerkError.errors?.[0]?.message ??
-        "Invalid verification code.";
+      const message = getClerkErrorMessage(err, "Invalid verification code.");
       setError(message);
     } finally {
       setSubmitting(false);

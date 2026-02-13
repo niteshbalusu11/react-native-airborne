@@ -10,6 +10,15 @@ type ClerkError = {
   errors?: { longMessage?: string; message?: string }[];
 };
 
+function getClerkErrorMessage(error: unknown, fallback: string) {
+  const clerkError = error as ClerkError;
+  return clerkError.errors?.[0]?.longMessage ?? clerkError.errors?.[0]?.message ?? fallback;
+}
+
+function messageIndicatesSignedIn(message: string) {
+  return message.toLowerCase().includes("already signed in");
+}
+
 export default function SignUpScreen() {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { isLoaded, signUp, setActive } = useSignUp();
@@ -22,12 +31,31 @@ export default function SignUpScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (isAuthLoaded && isSignedIn) {
-    return <Redirect href="/(app)" />;
+  if (!isAuthLoaded) {
+    return null;
   }
+
+  if (isAuthLoaded && isSignedIn) {
+    return <Redirect href="/" />;
+  }
+
+  const activateSession = async (createdSessionId: string | null) => {
+    if (!setActive || !createdSessionId) {
+      router.replace("/(auth)/sign-in");
+      return;
+    }
+
+    await setActive({ session: createdSessionId });
+    router.replace("/");
+  };
 
   const onSignUpPress = async () => {
     if (!isLoaded || !signUp) {
+      return;
+    }
+
+    if (isSignedIn) {
+      router.replace("/");
       return;
     }
 
@@ -35,19 +63,43 @@ export default function SignUpScreen() {
     setError(null);
 
     try {
-      await signUp.create({
+      const signUpAttempt = await signUp.create({
         emailAddress: emailAddress.trim(),
         password,
       });
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setPendingVerification(true);
+      if (signUpAttempt.status === "complete") {
+        await activateSession(signUpAttempt.createdSessionId);
+        return;
+      }
+
+      if (signUpAttempt.status === "missing_requirements") {
+        const needsEmailVerification = signUpAttempt.unverifiedFields.includes("email_address");
+
+        if (needsEmailVerification) {
+          await signUpAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
+          setPendingVerification(true);
+          return;
+        }
+
+        setError(
+          "Account created, but additional sign-up requirements are enabled in Clerk. Check your Clerk settings.",
+        );
+        return;
+      }
+
+      setError("Sign-up was abandoned. Please try again.");
     } catch (err) {
-      const clerkError = err as ClerkError;
-      const message =
-        clerkError.errors?.[0]?.longMessage ??
-        clerkError.errors?.[0]?.message ??
-        "Unable to sign up. Check your Clerk configuration.";
+      const message = getClerkErrorMessage(
+        err,
+        "Unable to sign up. Check your Clerk configuration.",
+      );
+
+      if (messageIndicatesSignedIn(message)) {
+        router.replace("/");
+        return;
+      }
+
       setError(message);
     } finally {
       setSubmitting(false);
@@ -55,7 +107,12 @@ export default function SignUpScreen() {
   };
 
   const onVerifyPress = async () => {
-    if (!isLoaded || !setActive) {
+    if (!isLoaded || !signUp) {
+      return;
+    }
+
+    if (isSignedIn) {
+      router.replace("/");
       return;
     }
 
@@ -64,26 +121,17 @@ export default function SignUpScreen() {
 
     try {
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
-        code,
+        code: code.trim(),
       });
 
       if (signUpAttempt.status === "complete") {
-        await setActive({
-          session: signUpAttempt.createdSessionId,
-          navigate: async () => {
-            router.replace("/(app)");
-          },
-        });
+        await activateSession(signUpAttempt.createdSessionId);
         return;
       }
 
-      setError("Verification is not complete yet.");
+      setError("Verification is not complete yet. Check the code and try again.");
     } catch (err) {
-      const clerkError = err as ClerkError;
-      const message =
-        clerkError.errors?.[0]?.longMessage ??
-        clerkError.errors?.[0]?.message ??
-        "Invalid verification code.";
+      const message = getClerkErrorMessage(err, "Invalid verification code.");
       setError(message);
     } finally {
       setSubmitting(false);
