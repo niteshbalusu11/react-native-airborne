@@ -91,4 +91,42 @@ const serverPackage = await readJson<Record<string, unknown>>(serverPackagePath)
 serverPackage.name = "server";
 await writeJson(serverPackagePath, serverPackage);
 
+const templateReadmePath = resolvePath(templateRoot, "README.md");
+const templateReadme = await Bun.file(templateReadmePath).text();
+await Bun.write(
+  templateReadmePath,
+  templateReadme.replace(
+    /## 🛠️ Scaffolder Maintenance[\s\S]*?## 📝 Notes/,
+    "## 📝 Notes",
+  ),
+);
+
+const templateAgentsPath = resolvePath(templateRoot, "AGENTS.md");
+const templateAgents = await Bun.file(templateAgentsPath).text();
+await Bun.write(
+  templateAgentsPath,
+  templateAgents
+    .replace(
+      /\nThe repo also ships a scaffolder package: `tooling\/create-react-native-airborne`\.\n/,
+      "\n",
+    )
+    .replace(
+      /\n- `\.github\/workflows\/publish-create-react-native-airborne\.yml`: npm publish on tags/,
+      "",
+    )
+    .replace(
+      /\n- `tooling\/create-react-native-airborne\/`: published create package/,
+      "",
+    )
+    .replace(
+      /\nThe sync script copies selected repo paths into `tooling\/create-react-native-airborne\/template` and rewrites placeholder metadata\.\nIt also removes repo-specific publish workflow files that should not be included in generated app templates\.\n/,
+      "\n",
+    )
+    .replace(
+      /Publish CI \(`\.github\/workflows\/publish-create-react-native-airborne\.yml`\) runs on tag push and publishes `tooling\/create-react-native-airborne` to npm when tag version matches package version\.\nRequired secret: `NPM_TOKEN`\.\n\n/,
+      "",
+    )
+    .replace(/## Template Sync Workflow[\s\S]*?## CI and Quality Gates/, "## CI and Quality Gates"),
+);
+
 console.log("Template synced.");

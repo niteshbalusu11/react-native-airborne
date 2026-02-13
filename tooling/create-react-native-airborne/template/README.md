@@ -84,37 +84,6 @@ just prebuild
 - `EXPO_PUSH_ENDPOINT` (optional)
 - `EXPO_ACCESS_TOKEN` (optional)
 
-## 🛠️ Scaffolder Maintenance
-
-This repo is also the source template for `create-react-native-airborne`.
-
-After changing starter files in root/client/server, sync the published template:
-
-```bash
-cd tooling/create-react-native-airborne
-bun run sync-template
-```
-
-## 📦 Scaffolder
-
-This repo includes `create-react-native-airborne` under `tooling/create-react-native-airborne`.
-
-After publishing:
-
-```bash
-bun create react-native-airborne@latest my-app
-```
-
-## 🚀 Publish to npm
-
-Publishing is automated via GitHub Actions on tag push.
-
-- Supported tags:
-  - `v<version>` (example: `v0.2.0`)
-  - `create-react-native-airborne@<version>` (example: `create-react-native-airborne@0.2.0`)
-- Tag version must match `tooling/create-react-native-airborne/package.json` version.
-- Required repository secret: `NPM_TOKEN`.
-
 ## 📝 Notes
 
 - Mobile-only target (iOS/Android).

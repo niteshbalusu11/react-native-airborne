@@ -14,17 +14,14 @@ This file is for engineers and coding agents working in this repository.
 - Zustand + MMKV for local non-sensitive preferences
 - Expo notifications
 
-The repo also ships a scaffolder package: `tooling/create-react-native-airborne`.
 
 ## Monorepo Structure
 
 - `client/`: Expo app (mobile only: iOS + Android)
 - `server/`: Convex functions, schema, tests
-- `tooling/create-react-native-airborne/`: published create package
 - `uniwind/`: local integration docs used for setup decisions
 - `Justfile`: top-level task runner
 - `.github/workflows/ci.yml`: CI pipeline
-- `.github/workflows/publish-create-react-native-airborne.yml`: npm publish on tags
 
 ## Tooling Baseline
 
@@ -137,20 +134,6 @@ Uniwind integration is intentionally specific. Keep these rules:
 - Server tests use `convex-test`; keep tests deterministic and isolated.
 - If changing auth/push flows, verify both happy path and obvious edge cases.
 
-## Template Sync Workflow
-
-This repo doubles as the source for the published scaffolder template.
-
-When you change files that should be part of generated projects (root/client/server), sync template:
-
-```bash
-cd tooling/create-react-native-airborne
-bun run sync-template
-```
-
-The sync script copies selected repo paths into `tooling/create-react-native-airborne/template` and rewrites placeholder metadata.
-It also removes repo-specific publish workflow files that should not be included in generated app templates.
-
 ## CI and Quality Gates
 
 CI (`.github/workflows/ci.yml`) runs:
@@ -159,9 +142,6 @@ CI (`.github/workflows/ci.yml`) runs:
 2. validate (lint + typecheck + tests for client and server)
 3. native Android build on Linux (`arm64-v8a`)
 4. native iOS simulator build on `macos-26` (`arm64`)
-
-Publish CI (`.github/workflows/publish-create-react-native-airborne.yml`) runs on tag push and publishes `tooling/create-react-native-airborne` to npm when tag version matches package version.
-Required secret: `NPM_TOKEN`.
 
 Keep local changes compatible with these checks.
 
