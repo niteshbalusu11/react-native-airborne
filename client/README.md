@@ -22,6 +22,7 @@ bunx expo prebuild --platform all
 ```
 
 Then use:
+
 - `bun run ios`
 - `bun run android`
 

@@ -6,11 +6,7 @@ type PrimaryButtonProps = PropsWithChildren<{
   disabled?: boolean;
 }>;
 
-export function PrimaryButton({
-  children,
-  onPress,
-  disabled = false,
-}: PrimaryButtonProps) {
+export function PrimaryButton({ children, onPress, disabled = false }: PrimaryButtonProps) {
   return (
     <Pressable
       disabled={disabled}

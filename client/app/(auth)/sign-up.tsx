@@ -1,4 +1,4 @@
-import { useAuth, useSignIn } from "@clerk/clerk-expo";
+import { useAuth, useSignUp } from "@clerk/clerk-expo";
 import { Link, Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -10,24 +10,24 @@ type ClerkError = {
   errors?: { longMessage?: string; message?: string }[];
 };
 
-export default function SignInScreen() {
+export default function SignUpScreen() {
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
-  const { signIn, setActive, isLoaded } = useSignIn();
+  const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
-  const [showEmailCode, setShowEmailCode] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (isAuthLoaded && isSignedIn) {
     return <Redirect href="/(app)" />;
   }
 
-  const onSignInPress = async () => {
-    if (!isLoaded || !setActive) {
+  const onSignUpPress = async () => {
+    if (!isLoaded || !signUp) {
       return;
     }
 
@@ -35,43 +35,19 @@ export default function SignInScreen() {
     setError(null);
 
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress.trim(),
+      await signUp.create({
+        emailAddress: emailAddress.trim(),
         password,
       });
 
-      if (signInAttempt.status === "complete") {
-        await setActive({
-          session: signInAttempt.createdSessionId,
-          navigate: async () => {
-            router.replace("/(app)");
-          },
-        });
-        return;
-      }
-
-      if (signInAttempt.status === "needs_second_factor") {
-        const emailCodeFactor = signInAttempt.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "email_code" && "emailAddressId" in factor,
-        );
-
-        if (emailCodeFactor && "emailAddressId" in emailCodeFactor) {
-          await signIn.prepareSecondFactor({
-            strategy: "email_code",
-            emailAddressId: emailCodeFactor.emailAddressId,
-          });
-          setShowEmailCode(true);
-          return;
-        }
-      }
-
-      setError("Sign-in requires an unsupported additional step.");
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
     } catch (err) {
       const clerkError = err as ClerkError;
       const message =
         clerkError.errors?.[0]?.longMessage ??
         clerkError.errors?.[0]?.message ??
-        "Unable to sign in. Check your credentials and Clerk setup.";
+        "Unable to sign up. Check your Clerk configuration.";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -87,14 +63,13 @@ export default function SignInScreen() {
     setError(null);
 
     try {
-      const signInAttempt = await signIn.attemptSecondFactor({
-        strategy: "email_code",
+      const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       });
 
-      if (signInAttempt.status === "complete") {
+      if (signUpAttempt.status === "complete") {
         await setActive({
-          session: signInAttempt.createdSessionId,
+          session: signUpAttempt.createdSessionId,
           navigate: async () => {
             router.replace("/(app)");
           },
@@ -102,7 +77,7 @@ export default function SignInScreen() {
         return;
       }
 
-      setError("Verification was not completed. Try again.");
+      setError("Verification is not complete yet.");
     } catch (err) {
       const clerkError = err as ClerkError;
       const message =
@@ -115,22 +90,20 @@ export default function SignInScreen() {
     }
   };
 
-  if (showEmailCode) {
+  if (pendingVerification) {
     return (
       <AuthShell
-        badge="Two-step verification"
-        title="Check your inbox"
-        subtitle="Enter the 6-digit code we sent to your email to finish signing in."
+        badge="Almost done"
+        title="Verify your email"
+        subtitle="Enter the code from your inbox to activate your account."
         footer={
           <View className="flex-row items-center gap-1">
-            <Text className="text-sm text-zinc-600 dark:text-zinc-300">
-              Need a different account?
-            </Text>
+            <Text className="text-sm text-zinc-600 dark:text-zinc-300">Already verified?</Text>
             <Link
               href="/(auth)/sign-in"
               className="text-sm font-semibold text-sky-600 dark:text-sky-400"
             >
-              Start over
+              Sign in
             </Link>
           </View>
         }
@@ -163,19 +136,17 @@ export default function SignInScreen() {
 
   return (
     <AuthShell
-      badge="Welcome back"
-      title="Sign in"
-      subtitle="Continue building with your existing account."
+      badge="Get started"
+      title="Create your account"
+      subtitle="Use your email and a password. We'll send a verification code next."
       footer={
         <View className="flex-row items-center gap-1">
-          <Text className="text-sm text-zinc-600 dark:text-zinc-300">
-            Don&apos;t have an account?
-          </Text>
+          <Text className="text-sm text-zinc-600 dark:text-zinc-300">Already have an account?</Text>
           <Link
-            href="/(auth)/sign-up"
+            href="/(auth)/sign-in"
             className="text-sm font-semibold text-sky-600 dark:text-sky-400"
           >
-            Create one
+            Sign in
           </Link>
         </View>
       }
@@ -198,6 +169,7 @@ export default function SignInScreen() {
         placeholder="••••••••"
         autoComplete="password"
         textContentType="password"
+        hint="Use at least 8 characters for stronger security."
       />
 
       {error ? (
@@ -207,10 +179,10 @@ export default function SignInScreen() {
       ) : null}
 
       <PrimaryButton
-        onPress={onSignInPress}
+        onPress={onSignUpPress}
         disabled={submitting || !isLoaded || !emailAddress || !password}
       >
-        {submitting ? "Signing in..." : "Sign in"}
+        {submitting ? "Creating account..." : "Continue"}
       </PrimaryButton>
     </AuthShell>
   );

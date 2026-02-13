@@ -14,11 +14,9 @@ export function getClientEnv() {
     clerkPublishableKey:
       process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ??
       Constants.expoConfig?.extra?.clerkPublishableKey,
-    convexUrl:
-      process.env.EXPO_PUBLIC_CONVEX_URL ?? Constants.expoConfig?.extra?.convexUrl,
+    convexUrl: process.env.EXPO_PUBLIC_CONVEX_URL ?? Constants.expoConfig?.extra?.convexUrl,
     easProjectId:
-      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
-      Constants.expoConfig?.extra?.easProjectId,
+      process.env.EXPO_PUBLIC_EAS_PROJECT_ID ?? Constants.expoConfig?.extra?.easProjectId,
   });
 
   return cachedEnv;

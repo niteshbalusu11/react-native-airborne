@@ -34,6 +34,7 @@ just dev
 ## Commands
 
 - `just dev`: start Expo + Convex
+- `just fmt`: run Prettier on client and server
 - `just ios`: launch iOS app
 - `just android`: launch Android app
 - `just lint`: lint/type lint checks

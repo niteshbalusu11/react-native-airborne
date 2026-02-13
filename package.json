@@ -11,12 +11,14 @@
   "scripts": {
     "dev": "just dev",
     "install:all": "bun install --workspaces",
+    "fmt": "just fmt",
     "lint": "just lint",
     "typecheck": "just typecheck",
     "test": "just test",
     "ci": "just ci"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
   }
 }

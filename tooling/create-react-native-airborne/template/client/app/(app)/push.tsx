@@ -5,7 +5,7 @@ import { PrimaryButton } from "@/src/components/primary-button";
 import { Screen } from "@/src/components/screen";
 import { registerForPushNotificationsAsync } from "@/src/lib/notifications";
 import { usePreferencesStore } from "@/src/store/preferences-store";
-import { api } from "../../../server/convex/_generated/api";
+import { api } from "@convex/_generated/api";
 
 export default function PushScreen() {
   const [status, setStatus] = useState<string>("Idle");

@@ -1,13 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { z } from "zod";
 import { api } from "./_generated/api";
-import {
-  action,
-  mutation,
-  query,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server";
+import { action, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { getServerEnv } from "./env";
 import { requireUserIdentity } from "./lib";
 
@@ -52,9 +46,7 @@ export const registerToken = mutation({
     const user = await getCurrentUser(ctx);
     const existing = await ctx.db
       .query("pushTokens")
-      .withIndex("by_user_id_and_token", (q) =>
-        q.eq("userId", user._id).eq("token", args.token),
-      )
+      .withIndex("by_user_id_and_token", (q) => q.eq("userId", user._id).eq("token", args.token))
       .unique();
 
     const now = Date.now();
@@ -81,9 +73,7 @@ export const unregisterToken = mutation({
     const user = await getCurrentUser(ctx);
     const existing = await ctx.db
       .query("pushTokens")
-      .withIndex("by_user_id_and_token", (q) =>
-        q.eq("userId", user._id).eq("token", args.token),
-      )
+      .withIndex("by_user_id_and_token", (q) => q.eq("userId", user._id).eq("token", args.token))
       .unique();
 
     if (existing) {
@@ -124,9 +114,7 @@ export const sendTestNotification = action({
       to: tokenEntry.token,
       sound: "default",
       title: args.title ?? "Airborne Test Notification",
-      body:
-        args.body ??
-        "Push notifications are configured successfully in react-native-airborne.",
+      body: args.body ?? "Push notifications are configured successfully in react-native-airborne.",
       data: {
         source: "react-native-airborne",
       },

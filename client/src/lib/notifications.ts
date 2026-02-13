@@ -30,8 +30,7 @@ export async function registerForPushNotificationsAsync() {
   }
 
   const { easProjectId } = getClientEnv();
-  const projectId =
-    easProjectId ?? Constants.expoConfig?.extra?.eas?.projectId ?? undefined;
+  const projectId = easProjectId ?? Constants.expoConfig?.extra?.eas?.projectId ?? undefined;
 
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
 

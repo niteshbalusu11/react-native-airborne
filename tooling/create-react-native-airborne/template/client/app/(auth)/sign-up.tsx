@@ -1,4 +1,4 @@
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignUp } from "@clerk/clerk-expo";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
@@ -10,19 +10,19 @@ type ClerkError = {
   errors?: { longMessage?: string; message?: string }[];
 };
 
-export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+export default function SignUpScreen() {
+  const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
-  const [showEmailCode, setShowEmailCode] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSignInPress = async () => {
-    if (!isLoaded || !setActive) {
+  const onSignUpPress = async () => {
+    if (!isLoaded || !signUp) {
       return;
     }
 
@@ -30,46 +30,19 @@ export default function SignInScreen() {
     setError(null);
 
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress.trim(),
+      await signUp.create({
+        emailAddress: emailAddress.trim(),
         password,
       });
 
-      if (signInAttempt.status === "complete") {
-        await setActive({
-          session: signInAttempt.createdSessionId,
-          navigate: async ({ session }) => {
-            if (session?.currentTask) {
-              return;
-            }
-            router.replace("/(app)");
-          },
-        });
-        return;
-      }
-
-      if (signInAttempt.status === "needs_second_factor") {
-        const emailCodeFactor = signInAttempt.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "email_code" && "emailAddressId" in factor,
-        );
-
-        if (emailCodeFactor && "emailAddressId" in emailCodeFactor) {
-          await signIn.prepareSecondFactor({
-            strategy: "email_code",
-            emailAddressId: emailCodeFactor.emailAddressId,
-          });
-          setShowEmailCode(true);
-          return;
-        }
-      }
-
-      setError("Sign-in requires an unsupported additional step.");
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
     } catch (err) {
       const clerkError = err as ClerkError;
       const message =
         clerkError.errors?.[0]?.longMessage ??
         clerkError.errors?.[0]?.message ??
-        "Unable to sign in. Check your credentials and Clerk setup.";
+        "Unable to sign up. Check your Clerk configuration.";
       setError(message);
     } finally {
       setSubmitting(false);
@@ -85,14 +58,13 @@ export default function SignInScreen() {
     setError(null);
 
     try {
-      const signInAttempt = await signIn.attemptSecondFactor({
-        strategy: "email_code",
+      const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       });
 
-      if (signInAttempt.status === "complete") {
+      if (signUpAttempt.status === "complete") {
         await setActive({
-          session: signInAttempt.createdSessionId,
+          session: signUpAttempt.createdSessionId,
           navigate: async ({ session }) => {
             if (session?.currentTask) {
               return;
@@ -103,7 +75,7 @@ export default function SignInScreen() {
         return;
       }
 
-      setError("Verification was not completed. Try again.");
+      setError("Verification is not complete yet.");
     } catch (err) {
       const clerkError = err as ClerkError;
       const message =
@@ -116,7 +88,7 @@ export default function SignInScreen() {
     }
   };
 
-  if (showEmailCode) {
+  if (pendingVerification) {
     return (
       <Screen>
         <View className="flex-1 justify-center gap-5">
@@ -125,7 +97,7 @@ export default function SignInScreen() {
               Verify your email
             </Text>
             <Text className="text-zinc-600 dark:text-zinc-300">
-              A verification code was sent to your email.
+              Enter the verification code sent to your email.
             </Text>
           </View>
 
@@ -153,9 +125,11 @@ export default function SignInScreen() {
     <Screen>
       <View className="flex-1 justify-center gap-5">
         <View className="gap-2">
-          <Text className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Sign in</Text>
+          <Text className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Create account
+          </Text>
           <Text className="text-zinc-600 dark:text-zinc-300">
-            Sign in with your Clerk email and password.
+            Sign up with your email and password.
           </Text>
         </View>
 
@@ -177,18 +151,16 @@ export default function SignInScreen() {
         {error ? <Text className="text-sm text-red-500">{error}</Text> : null}
 
         <PrimaryButton
-          onPress={onSignInPress}
+          onPress={onSignUpPress}
           disabled={submitting || !isLoaded || !emailAddress || !password}
         >
-          {submitting ? "Signing in..." : "Sign in"}
+          {submitting ? "Creating account..." : "Continue"}
         </PrimaryButton>
 
         <View className="flex-row items-center gap-1">
-          <Text className="text-sm text-zinc-600 dark:text-zinc-300">
-            Don&apos;t have an account?
-          </Text>
-          <Link href="/(auth)/sign-up" className="text-sm font-semibold text-blue-600">
-            Sign up
+          <Text className="text-sm text-zinc-600 dark:text-zinc-300">Already have an account?</Text>
+          <Link href="/(auth)/sign-in" className="text-sm font-semibold text-blue-600">
+            Sign in
           </Link>
         </View>
       </View>

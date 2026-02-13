@@ -1,0 +1,8 @@
+node_modules
+bun.lock
+coverage
+client/.expo
+client/android
+client/ios
+server/convex/_generated
+tooling/create-react-native-airborne/template

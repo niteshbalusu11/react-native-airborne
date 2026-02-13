@@ -9,6 +9,8 @@ const templateRoot = path.resolve(__dirname, "../template");
 const includePaths = [
   ".github",
   ".gitignore",
+  ".prettierignore",
+  ".prettierrc.json",
   "Justfile",
   "README.md",
   "package.json",

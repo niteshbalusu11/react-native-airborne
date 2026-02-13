@@ -3,6 +3,9 @@ set shell := ["zsh", "-cu"]
 install:
   bun install --workspaces
 
+fmt:
+  bunx prettier --write client server
+
 prebuild:
   cd client && bunx expo prebuild --platform all
 
