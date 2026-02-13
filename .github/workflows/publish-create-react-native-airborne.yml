@@ -25,8 +25,13 @@ jobs:
       - name: "🟢 Setup Node"
         uses: actions/setup-node@v4
         with:
-          node-version: "22.14.0"
-          registry-url: "https://registry.npmjs.org"
+          node-version: "24"
+
+      - name: "🧰 Ensure npm supports trusted publishing"
+        run: |
+          npm install -g npm@latest
+          node --version
+          npm --version
 
       - name: "📦 Install dependencies"
         run: bun install --workspaces
