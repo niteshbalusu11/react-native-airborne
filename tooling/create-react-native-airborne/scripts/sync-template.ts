@@ -126,7 +126,18 @@ const templateReadmePath = resolvePath(templateRoot, "README.md");
 const templateReadme = await Bun.file(templateReadmePath).text();
 await Bun.write(
   templateReadmePath,
-  templateReadme.replace(/## 🛠️ Scaffolder Maintenance[\s\S]*?## 📝 Notes/, "## 📝 Notes"),
+  templateReadme
+    .replace(
+      /It includes a production-ready Expo client, a Convex backend, and a published scaffolder \(`create-react-native-airborne`\) so you can generate new apps with one command\.\n\n/,
+      "It includes a production-ready Expo client and a Convex backend.\n\n",
+    )
+    .replace(/## ✈️ What This Repo Contains[\s\S]*?## 🧰 Stack/, "## 🧰 Stack")
+    .replace(
+      /## 🗂️ Project Layout[\s\S]*?## ✅ Prerequisites/,
+      "## 🗂️ Project Layout\n\n```text\n__APP_NAME__/\n  client/ # Expo app (Expo Router + Native Tabs)\n  server/ # Convex backend\n```\n\n## ✅ Prerequisites",
+    )
+    .replace(/## 📦 Create New Projects[\s\S]*?## 🤝 Contributor Guide/, "## 🤝 Contributor Guide")
+    .replace(/## 🛠️ (Scaffolder|Template) Maintenance[\s\S]*?## 📝 Notes/, "## 📝 Notes"),
 );
 
 const templateAgentsPath = resolvePath(templateRoot, "AGENTS.md");
