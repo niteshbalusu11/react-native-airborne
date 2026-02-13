@@ -37,7 +37,7 @@ jobs:
 
   android-native-build:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     defaults:
       run:
         shell: bash
@@ -73,7 +73,7 @@ jobs:
 
   ios-native-build:
     needs: validate
-    runs-on: macos-latest
+    runs-on: macos-26
     defaults:
       run:
         shell: bash
@@ -124,4 +124,4 @@ jobs:
             ARCHS=arm64 \
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
-            build
+            build -quiet
