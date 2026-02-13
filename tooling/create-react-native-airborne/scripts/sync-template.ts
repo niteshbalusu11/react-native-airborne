@@ -1,4 +1,6 @@
 import { $ } from "bun";
+import { readdir, rename, stat } from "node:fs/promises";
+import path from "node:path";
 
 function toPath(relativeUrl: string) {
   return decodeURIComponent(new URL(relativeUrl, import.meta.url).pathname).replace(/\/$/, "");
@@ -14,6 +16,22 @@ async function readJson<T>(path: string) {
 
 async function writeJson(path: string, value: unknown) {
   await Bun.write(path, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function rewriteGitignoreFiles(dir: string) {
+  const entries = await readdir(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const currentPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await rewriteGitignoreFiles(currentPath);
+      continue;
+    }
+
+    if (entry.name === ".gitignore") {
+      await rename(currentPath, path.join(dir, "gitignore"));
+    }
+  }
 }
 
 const repoRoot = toPath("../../..");
@@ -36,10 +54,13 @@ const includePaths = [
 const excludePaths = [
   ".github/workflows/publish-create-react-native-airborne.yml",
   "client/.expo",
+  "client/.env",
+  "client/expo-env.d.ts",
   "client/ios",
   "client/android",
   "client/node_modules",
   "client/bun.lock",
+  "server/.env.local",
   "server/node_modules",
   "server/bun.lock",
 ];
@@ -57,9 +78,17 @@ await $`mkdir -p ${templateRoot}`;
 
 for (const entry of includePaths) {
   const sourcePath = resolvePath(repoRoot, entry);
-  const destinationPath = templateRoot;
+  const sourceStats = await stat(sourcePath);
   const excludeArgs = getExcludePatterns(entry).flatMap((pattern) => ["--exclude", pattern]);
-  await $`rsync -a ${excludeArgs} ${sourcePath} ${destinationPath}`;
+
+  if (sourceStats.isDirectory()) {
+    const destinationPath = resolvePath(templateRoot, entry);
+    await $`mkdir -p ${destinationPath}`;
+    await $`rsync -a ${excludeArgs} ${`${sourcePath}/`} ${`${destinationPath}/`}`;
+    continue;
+  }
+
+  await $`cp ${sourcePath} ${resolvePath(templateRoot, entry)}`;
 }
 
 const rootPackagePath = resolvePath(templateRoot, "package.json");
@@ -121,5 +150,7 @@ await Bun.write(
     )
     .replace(/## Template Sync Workflow[\s\S]*?## CI and Quality Gates/, "## CI and Quality Gates"),
 );
+
+await rewriteGitignoreFiles(templateRoot);
 
 console.log("Template synced.");
