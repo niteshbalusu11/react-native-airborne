@@ -7,19 +7,18 @@ This file is for engineers and coding agents working in this repository.
 `react-native-airborne` is an opinionated Bun workspace starter for mobile apps:
 
 - Expo + Expo Router client
+- Expo Router Native Tabs (SDK 55)
 - Clerk auth
 - Uniwind styling (Tailwind v4)
 - Convex backend
 - Zustand + MMKV for local non-sensitive preferences
 - Expo notifications
 
-The repo also ships a scaffolder package: `tooling/create-react-native-airborne`.
 
 ## Monorepo Structure
 
 - `client/`: Expo app (mobile only: iOS + Android)
 - `server/`: Convex functions, schema, tests
-- `tooling/create-react-native-airborne/`: published create package
 - `uniwind/`: local integration docs used for setup decisions
 - `Justfile`: top-level task runner
 - `.github/workflows/ci.yml`: CI pipeline
@@ -78,6 +77,9 @@ Validation is in `server/convex/env.ts`.
 - Route guards:
   - `client/app/(auth)/_layout.tsx` redirects signed-in users to `/(app)`
   - `client/app/(app)/_layout.tsx` redirects signed-out users to `/(auth)/sign-in`
+- App shell:
+  - `client/app/(app)/_layout.tsx` uses `NativeTabs` from `expo-router/unstable-native-tabs`
+  - tabs are explicitly registered for `index`, `push`, and `settings`
 - Auth screens are custom flows in:
   - `client/app/(auth)/sign-in.tsx`
   - `client/app/(auth)/sign-up.tsx`
@@ -132,27 +134,14 @@ Uniwind integration is intentionally specific. Keep these rules:
 - Server tests use `convex-test`; keep tests deterministic and isolated.
 - If changing auth/push flows, verify both happy path and obvious edge cases.
 
-## Template Sync Workflow
-
-This repo doubles as the source for the published scaffolder template.
-
-When you change files that should be part of generated projects (root/client/server), sync template:
-
-```bash
-cd tooling/create-react-native-airborne
-bun run sync-template
-```
-
-The sync script copies selected repo paths into `tooling/create-react-native-airborne/template` and rewrites placeholder metadata.
-
 ## CI and Quality Gates
 
 CI (`.github/workflows/ci.yml`) runs:
 
 1. install (`bun install --workspaces`)
-2. lint (client + server)
-3. typecheck (client + server)
-4. tests (client + server)
+2. validate (lint + typecheck + tests for client and server)
+3. native Android build on Linux (`arm64-v8a`)
+4. native iOS simulator build on `macos-26` (`arm64`)
 
 Keep local changes compatible with these checks.
 
