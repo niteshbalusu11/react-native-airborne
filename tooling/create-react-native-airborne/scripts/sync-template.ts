@@ -138,6 +138,11 @@ await Bun.write(
   templateReadmePath,
   templateReadme
     .replace(
+      /# React Native Airborne[\s\S]*?## 🧰 What You Get/,
+      "# __APP_NAME__\n\nThis project was scaffolded with React Native Airborne.\n\n## 🧰 What You Get",
+    )
+    .replaceAll("my-app", "__APP_NAME__")
+    .replace(
       /It includes a production-ready Expo client, a Convex backend, and a published scaffolder \(`create-react-native-airborne`\) so you can generate new apps with one command\.\n\n/,
       "It includes a production-ready Expo client and a Convex backend.\n\n",
     )
@@ -146,9 +151,13 @@ await Bun.write(
       /## 🗂️ Project Layout[\s\S]*?## ✅ Prerequisites/,
       "## 🗂️ Project Layout\n\n```text\n__APP_NAME__/\n  client/ # Expo app (Expo Router + Native Tabs)\n  server/ # Convex backend\n```\n\n## ✅ Prerequisites",
     )
-    .replace(/## 📦 Create New Projects[\s\S]*?(?=\n## )/g, "")
+    .replace(/## 📦 Create (New Projects|a New App)[\s\S]*?(?=\n## )/g, "")
     .replace(/## 🛠️ (Scaffolder|Template) Maintenance[\s\S]*?(?=\n## )/g, "")
-    .replace(/## 🚀 Publish to npm[\s\S]*?(?=\n## )/g, ""),
+    .replace(/## 🚀 Publish to npm[\s\S]*?(?=\n## )/g, "")
+    .replace(
+      "If you are maintaining the template itself (not just using it), see `AGENTS.md` for internal workflow and release details.",
+      "See `AGENTS.md` for implementation notes and project conventions.",
+    ),
 );
 
 const templateAgentsPath = resolvePath(templateRoot, "AGENTS.md");
